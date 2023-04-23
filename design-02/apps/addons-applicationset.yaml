@@ -1,0 +1,33 @@
+---
+# An ApplicationSet that dynamically creates Applications from subdirectories of *another* repo
+# https://argo-cd.readthedocs.io/en/latest/operator-manual/applicationset/Generators-Git/
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: cluster-addons
+  namespace: argocd
+spec:
+  generators:
+  - git:
+      # https://github.com/argoproj/argo-cd/tree/master/applicationset/examples/git-generator-directory/cluster-addons
+      repoURL: https://github.com/argoproj/argo-cd.git
+      revision: HEAD
+      directories:
+      - path: applicationset/examples/git-generator-directory/cluster-addons/*
+  template:
+    metadata:
+      name: '{{path.basename}}'
+      finalizers:
+        - resources-finalizer.argocd.argoproj.io
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/argoproj/argo-cd.git
+        targetRevision: HEAD
+        path: '{{path}}'
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: '{{path.basename}}'
+      syncPolicy:
+        syncOptions:
+        - CreateNamespace=true

@@ -1,0 +1,21 @@
+---
+# Use a remote Helm chart with a different remote values file
+# https://argo-cd.readthedocs.io/en/latest/user-guide/multiple_sources/#helm-value-files-from-external-git-repository
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: prometheus-prod
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  sources:
+  - repoURL: 'https://prometheus-community.github.io/helm-charts'
+    chart: prometheus
+    targetRevision: 15.7.1
+    helm:
+      valueFiles:
+      - $values/charts/prometheus/values.yaml
+  - repoURL: 'https://git.example.gom/org/value-files.git'
+    targetRevision: dev
+    ref: values
